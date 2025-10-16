@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sách Nói Unit 1: Is this your mom?</title>
+    <!-- Tải Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Thiết lập font chữ Inter và nền */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Màu nền nhẹ nhàng */
+        }
+
+        /* Thẻ hiển thị câu hiện tại */
+        #current-sentence-card {
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 0 10px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease-in-out;
+            cursor: pointer; /* Cho phép click để nghe lại */
+        }
+
+        .role-A-bg {
+            background-color: #dbeafe; /* blue-100 */
+        }
+        .role-B-bg {
+            background-color: #ede9fe; /* violet-100 */
+        }
+        
+        .card-playing {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.5);
+            border: 3px solid #3b82f6;
+        }
+
+        .role-title {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600;
+            color: #4f46e5; /* indigo-600 */
+            margin-bottom: 0.5rem;
+        }
+
+        .main-text {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 800;
+            color: #1f2937; /* gray-800 */
+            line-height: 1.2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .emoji {
+            font-size: 3rem;
+            margin-right: 1rem;
+        }
+
+        /* Feedback Styles */
+        .feedback-success { color: #10b981; } /* emerald-500 */
+        .feedback-error { color: #ef4444; }   /* red-500 */
+        .feedback-listening { color: #3b82f6; } /* blue-500 */
+        .feedback-test { color: #ff9800; } /* orange-500 */
+
+        /* Hiệu ứng loading */
+        .loading-dot {
+            animation: bounce 0.6s infinite alternate;
+        }
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes bounce {
+            to { transform: translateY(-5px); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4">
+    <div id="app" class="w-full max-w-xl bg-white rounded-2xl shadow-2xl p-4 md:p-10 mt-4">
+
+        <!-- Tiêu đề (Bilingual) -->
+        <h1 class="text-3xl md:text-4xl font-extrabold text-indigo-700 mb-2 text-center">
+            Sách Nói Unit 1: Is this your mom?
+        </h1>
+        <p class="text-lg text-gray-600 mb-6 text-center border-b pb-4">
+            Luyện tập và Kiểm tra Mẫu câu Gia đình | Family Sentence Pattern Practice & Check
+        </p>
+        
+        <!-- Cảnh báo dành cho người dùng -->
+        <div class="p-4 mb-6 text-sm text-yellow-800 rounded-lg bg-yellow-50" role="alert">
+            <span class="font-medium">Lưu ý QUAN TRỌNG:</span> Chức năng **ĐỌC** (Micro) chỉ hoạt động trên môi trường an toàn (HTTPS/localhost).
+            <div id="security-status" class="mt-2 font-bold">Đang kiểm tra môi trường...</div>
+        </div>
+        
+        <!-- Khu vực TEST MICROPHONE mới -->
+        <div id="mic-test-area" class="text-center mb-6">
+            <button id="test-mic-button" onclick="testMicrophone()"
+                class="px-5 py-2 bg-pink-500 text-white font-bold text-sm rounded-xl shadow-lg hover:bg-pink-600 transition duration-150 transform hover:scale-105 flex items-center justify-center mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4z" clip-rule="evenodd" />
+                    <path fill-rule="evenodd" d="M4.2 11.75a.75.75 0 011.06 0A5.5 5.5 0 0010 16.5a5.5 5.5 0 004.74-2.75.75.75 0 111.33 0A7 7 0 0110 18a7 7 0 01-5.07-2.25.75.75 0 010-1.06z" clip-rule="evenodd" />
+                </svg>
+                TEST MICROPHONE
+            </button>
+            <p id="mic-test-status" class="mt-2 text-sm font-semibold text-gray-700">Nhấn nút trên để kiểm tra micro.</p>
+        </div>
+
+
+        <!-- Thẻ hiển thị câu hiện tại -->
+        <div id="current-sentence-card" 
+             onclick="repeatCurrentSentence()"
+             class="role-A-bg mb-8">
+            <p id="role-display" class="role-title">Sẵn sàng học | Ready to start</p>
+            <div id="text-display" class="main-text">
+                <span id="emoji-display" class="emoji">📚</span>
+                <span id="sentence-text-content">Nhấn "BẮT ĐẦU" để bắt đầu!</span>
+            </div>
+        </div>
+        
+        <!-- Khu vực phản hồi kiểm tra giọng nói -->
+        <div id="feedback-display" class="text-center text-lg font-semibold mb-6">
+            <!-- Phản hồi được chèn vào đây -->
+        </div>
+
+
+        <!-- Nút điều khiển Thực hành (Nghe lại & Đọc) -->
+        <div id="practice-controls" class="flex justify-center space-x-4 mb-8">
+            <button id="repeat-button" onclick="repeatCurrentSentence()" disabled
+                class="px-5 py-3 bg-indigo-500 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-indigo-600 transition duration-150 transform hover:scale-105 disabled:opacity-50 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                NGHE LẠI
+            </button>
+            <button id="read-button" onclick="startRecognition()" disabled
+                class="px-5 py-3 bg-yellow-500 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-yellow-600 transition duration-150 transform hover:scale-105 disabled:opacity-50 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-7-3v-2a3 3 0 016 0v2m2 5a2 2 0 01-2 2H7a2 2 0 01-2-2v-4a2 2 0 012-2h10a2 2 0 012 2v4z" />
+                </svg>
+                ĐỌC
+            </button>
+        </div>
+        
+        <!-- Nút điều khiển Chính (Bắt đầu/Tiếp theo/Dừng) -->
+        <div class="flex justify-center space-x-4 mb-8">
+            <button id="next-button" onclick="nextSentence()" disabled
+                class="px-8 py-3 bg-green-600 text-white font-bold text-xl rounded-xl shadow-lg hover:bg-green-700 transition duration-150 transform hover:scale-105 disabled:opacity-50 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 12h14" />
+                </svg>
+                <span id="start-text">BẮT ĐẦU | START</span>
+            </button>
+            <button id="stop-button" onclick="stopReading()" disabled
+                class="px-8 py-3 bg-red-500 text-white font-bold text-xl rounded-xl shadow-lg hover:bg-red-600 transition duration-150 transform hover:scale-105 disabled:opacity-50">
+                DỪNG | STOP
+            </button>
+        </div>
+        
+        <!-- Thông báo Đang tải (Chỉ hiển thị lúc khởi tạo voices) -->
+        <div id="loading-indicator" class="text-center text-xl font-semibold text-indigo-500 mb-6 hidden">
+            Đang tải dữ liệu giọng nói... / Loading voice data...
+            <span class="loading-dot inline-block w-2 h-2 bg-indigo-500 rounded-full mx-1"></span>
+            <span class="loading-dot inline-block w-2 h-2 bg-indigo-500 rounded-full mx-1"></span>
+            <span class="loading-dot inline-block w-2 h-2 bg-indigo-500 rounded-full mx-1"></span>
+        </div>
+
+    </div>
+
+    <script>
+        // --- CẤU HÌNH VÀ DỮ LIỆU ---
+        
+        const scriptData = [
+            // Cấu trúc: role, text, voice (dùng cho việc chọn giọng native), emoji
+            { role: "Giọng A (hào hứng)", text: "Is this your mom?", voice: "male", emoji: "❓👩" },
+            { role: "Giọng B (tự tin)", text: "Yes, it is.", voice: "female", emoji: "✅" },
+            
+            { role: "Giọng A (tò mò)", text: "Is this your dad?", voice: "male", emoji: "❓👨" },
+            { role: "Giọng B (chắc chắn)", text: "No, it isn’t.", voice: "female", emoji: "❌" },
+            
+            { role: "Giọng A (giới thiệu)", text: "This is my brother.", voice: "male", emoji: "🧍‍♂️" },
+            
+            { role: "Giọng A (hỏi)", text: "Is this your grandpa?", voice: "male", emoji: "❓👴" },
+            { role: "Giọng B (trả lời đầy đủ)", text: "Yes, it is. This is my grandpa.", voice: "female", emoji: "✅👴" },
+            
+            { role: "Giọng A (hỏi lần cuối)", text: "Is this your sister?", voice: "male", emoji: "❓👧" },
+            { role: "Giọng B (chối và giới thiệu)", text: "No, it isn't. This is my grandma.", voice: "female", emoji: "❌👵" },
+        ];
+        
+        // --- DOM Elements ---
+        const NEXT_BUTTON = document.getElementById('next-button');
+        const STOP_BUTTON = document.getElementById('stop-button');
+        const REPEAT_BUTTON = document.getElementById('repeat-button');
+        const READ_BUTTON = document.getElementById('read-button');
+        const LOADING_INDICATOR = document.getElementById('loading-indicator');
+        const CARD = document.getElementById('current-sentence-card');
+        const ROLE_DISPLAY = document.getElementById('role-display');
+        const EMOJI_DISPLAY = document.getElementById('emoji-display');
+        const TEXT_CONTENT = document.getElementById('sentence-text-content');
+        const FEEDBACK_DISPLAY = document.getElementById('feedback-display');
+        const SECURITY_STATUS = document.getElementById('security-status'); 
+        const MIC_TEST_STATUS = document.getElementById('mic-test-status'); // New
+
+        // --- State Variables ---
+        let isStopped = true;
+        let availableVoices = [];
+        let currentLineIndex = -1; 
+        let isSpeaking = false;
+        let recognition; 
+        
+        // --- UTILITY FUNCTIONS ---
+
+        /**
+         * Chuẩn hóa văn bản: loại bỏ dấu câu và chuyển về chữ thường.
+         */
+        function normalizeText(text) {
+            return text.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "").trim();
+        }
+
+        /**
+         * Cập nhật phản hồi trên màn hình.
+         */
+        function updateFeedback(message, type = 'default', target = FEEDBACK_DISPLAY) {
+            target.textContent = message;
+            target.classList.remove('feedback-success', 'feedback-error', 'feedback-listening', 'feedback-test', 'hidden');
+            
+            if (type === 'success') {
+                target.classList.add('feedback-success');
+            } else if (type === 'error') {
+                target.classList.add('feedback-error');
+            } else if (type === 'listening') {
+                target.classList.add('feedback-listening');
+            } else if (type === 'test') {
+                 target.classList.add('feedback-test');
+            } else {
+                target.classList.add('hidden');
+            }
+        }
+
+        // --- MICROPHONE TEST FUNCTION (Dùng để chẩn đoán) ---
+        /**
+         * Chức năng độc lập kiểm tra quyền truy cập micro của trình duyệt.
+         */
+        function testMicrophone() {
+            console.log("--- TEST MICRO: Bắt đầu chạy testMicrophone() ---");
+            updateFeedback('Đang kiểm tra quyền Micro...', 'test', MIC_TEST_STATUS);
+            
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                console.error("TEST MICRO: Lỗi - Trình duyệt không hỗ trợ Media Devices.");
+                updateFeedback('Lỗi: Trình duyệt không hỗ trợ Media Devices.', 'error', MIC_TEST_STATUS);
+                return;
+            }
+
+            try {
+                console.log("TEST MICRO: Gọi navigator.mediaDevices.getUserMedia({ audio: true })...");
+                
+                // Dùng Promise để kiểm tra quyền
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        // Thành công: Đã cấp quyền
+                        console.log("TEST MICRO: SUCCESS - Đã nhận được stream.");
+                        updateFeedback('✅ MICROPHONE HOẠT ĐỘNG! (Kích hoạt cho trang này)', 'success', MIC_TEST_STATUS);
+                        
+                        // Quan trọng: Dừng stream ngay lập tức để không chiếm micro
+                        stream.getTracks().forEach(track => track.stop());
+                    })
+                    .catch(error => {
+                        // Thất bại: Bị từ chối (NotAllowedError) hoặc lỗi thiết bị
+                        console.error('TEST MICRO: FAILURE - Lỗi khi kiểm tra Microphone:', error.name, error.message);
+                        
+                        let errorMessage;
+                        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                            errorMessage = '❌ MICRO BỊ CHẶN! Vui lòng bấm vào biểu tượng Ổ KHÓA (🔒) trên thanh địa chỉ và chọn "Cho phép" (Allow) cho Micro.';
+                        } else if (error.name === 'NotFoundError') {
+                             errorMessage = '❌ LỖI THIẾT BỊ: Không tìm thấy Micro trên hệ thống của bạn.';
+                        } else if (error.name === 'AbortError') {
+                             errorMessage = '❌ Hủy bỏ: Yêu cầu truy cập Micro bị hủy bỏ.';
+                        } else {
+                            errorMessage = `❌ LỖI KHÔNG XÁC ĐỊNH (${error.name}). Kiểm tra ứng dụng khác có đang chiếm Micro không.`;
+                        }
+                        updateFeedback(errorMessage, 'error', MIC_TEST_STATUS);
+                    });
+            } catch (e) {
+                // Bắt lỗi đồng bộ (rất hiếm)
+                console.error('TEST MICRO: Lỗi đồng bộ khi gọi getUserMedia:', e.name, e.message);
+                updateFeedback(`Lỗi nghiêm trọng (${e.name}): Vui lòng kiểm tra lại trình duyệt.`, 'error', MIC_TEST_STATUS);
+            }
+        }
+
+
+        // --- NATIVE SPEECH SYNTHESIS (READING) FUNCTIONS ---
+
+        /**
+         * Tải danh sách giọng nói sau khi chúng có sẵn.
+         */
+        function loadVoices() {
+            availableVoices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
+            if (availableVoices.length === 0) {
+                window.speechSynthesis.onvoiceschanged = () => {
+                    availableVoices = window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
+                    if (availableVoices.length > 0) {
+                        NEXT_BUTTON.disabled = false;
+                        LOADING_INDICATOR.classList.add('hidden');
+                    }
+                };
+            } else {
+                NEXT_BUTTON.disabled = false;
+                LOADING_INDICATOR.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Chọn một giọng nói phù hợp (Ưu tiên giới tính).
+         */
+        function selectVoice(genderHint) {
+            let selectedVoice = null;
+            
+            if (availableVoices.length === 0) return null;
+
+            // 1. Tìm giọng phù hợp với giới tính/tên phổ biến
+            if (genderHint === 'male') {
+                selectedVoice = availableVoices.find(v => v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('daniel'));
+            } else if (genderHint === 'female') {
+                selectedVoice = availableVoices.find(v => v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('ava') || v.name.toLowerCase().includes('samantha'));
+            }
+            
+            // 2. Nếu không tìm thấy, chọn giọng tiếng Anh bất kỳ
+            if (!selectedVoice) {
+                selectedVoice = availableVoices[Math.floor(Math.random() * availableVoices.length)];
+            }
+            
+            return selectedVoice;
+        }
+
+        /**
+         * Phát một đoạn văn bản bằng giọng nói Native.
+         */
+        function speakText(text, voice) {
+            return new Promise(resolve => {
+                if (isSpeaking) {
+                    window.speechSynthesis.cancel();
+                    isSpeaking = false;
+                }
+                
+                CARD.classList.add('card-playing');
+                isSpeaking = true;
+                READ_BUTTON.disabled = true;
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                const selectedVoice = selectVoice(voice);
+
+                if (selectedVoice) {
+                    utterance.voice = selectedVoice;
+                }
+
+                utterance.rate = 0.75; 
+                utterance.pitch = 1.0;
+                
+                utterance.onend = () => {
+                    CARD.classList.remove('card-playing');
+                    isSpeaking = false;
+                    READ_BUTTON.disabled = false;
+                    resolve();
+                };
+                utterance.onerror = (event) => {
+                    console.error('SpeechSynthesisUtterance.onerror', event);
+                    CARD.classList.remove('card-playing');
+                    isSpeaking = false;
+                    READ_BUTTON.disabled = false;
+                    resolve(); 
+                };
+
+                window.speechSynthesis.speak(utterance);
+            });
+        }
+        
+        // --- NATIVE SPEECH RECOGNITION (CHECKING) FUNCTIONS ---
+
+        /**
+         * Khởi tạo Speech Recognition API.
+         */
+        function initializeRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                READ_BUTTON.textContent = 'ĐỌC (Không hỗ trợ)';
+                READ_BUTTON.disabled = true;
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = false; // Nghe một lần
+            recognition.interimResults = false; // Chỉ trả về kết quả cuối cùng
+            recognition.lang = 'en-US'; // Đặt ngôn ngữ nhận dạng là Tiếng Anh
+        }
+
+        /**
+         * Bắt đầu nhận dạng giọng nói.
+         */
+        function startRecognition() {
+            if (!recognition || currentLineIndex < 0 || currentLineIndex >= scriptData.length) {
+                return; 
+            }
+            
+            // Dừng mọi âm thanh đang phát
+            window.speechSynthesis.cancel();
+
+            // Thử dừng trước khi start.
+            try {
+                recognition.stop();
+            } catch (e) {
+                // Bỏ qua lỗi nếu không thể dừng
+            }
+            
+            // Thiết lập trạng thái
+            READ_BUTTON.disabled = true;
+            REPEAT_BUTTON.disabled = true;
+            NEXT_BUTTON.disabled = true;
+            CARD.classList.remove('card-playing');
+            updateFeedback('Đang nghe... hãy nói câu trên. | Listening...', 'listening');
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                checkResult(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech Recognition Error:', event.error, event); 
+                let errorMessage;
+
+                if (event.error === 'not-allowed') {
+                    errorMessage = 'Lỗi: Không có quyền truy cập micro. (1) Vui lòng kiểm tra lại cấp quyền trên trình duyệt, (2) Kiểm tra cài đặt Micro trên hệ điều hành của bạn.';
+                } else if (event.error === 'no-speech') {
+                    errorMessage = 'Lỗi: Không phát hiện giọng nói. Vui lòng nói to hơn.';
+                } else {
+                    errorMessage = `Lỗi nhận dạng giọng nói: ${event.error}.`;
+                }
+
+                updateFeedback(errorMessage, 'error');
+                READ_BUTTON.disabled = false;
+                REPEAT_BUTTON.disabled = false;
+            };
+
+            recognition.onend = () => {
+                if (NEXT_BUTTON.disabled) {
+                    READ_BUTTON.disabled = false;
+                    REPEAT_BUTTON.disabled = false;
+                }
+            };
+
+            try {
+                recognition.start();
+            } catch (e) {
+                console.error("Lỗi khi gọi recognition.start():", e.name, e.message); 
+                updateFeedback(`Lỗi khởi động micro (${e.name}): Vui lòng đảm bảo Micro không bị ứng dụng khác sử dụng.`, 'error');
+                READ_BUTTON.disabled = false;
+                REPEAT_BUTTON.disabled = false;
+            }
+        }
+        
+        /**
+         * Kiểm tra kết quả nhận dạng so với câu mong muốn bằng cách so sánh từ.
+         * Ngưỡng độ khó đã được giảm xuống 60% (MATCH_THRESHOLD = 0.60)
+         */
+        function checkResult(transcript) {
+            const expectedText = scriptData[currentLineIndex].text;
+            const normalizedTranscript = normalizeText(transcript);
+            const normalizedExpected = normalizeText(expectedText);
+            
+            // Tách thành các từ (tokens)
+            const expectedWords = normalizedExpected.split(/\s+/).filter(word => word.length > 0);
+            const transcriptWords = normalizedTranscript.split(/\s+/).filter(word => word.length > 0);
+            
+            const expectedCount = expectedWords.length;
+            
+            if (expectedCount === 0) {
+                updateFeedback('Lỗi: Câu mẫu trống.', 'error');
+                READ_BUTTON.disabled = false;
+                REPEAT_BUTTON.disabled = false;
+                return;
+            }
+
+            // Dùng một bản sao của transcriptWords để theo dõi các từ đã khớp
+            let tempTranscriptWords = [...transcriptWords];
+            let matchedWords = 0;
+
+            // So sánh từng từ trong câu mẫu với các từ trong câu của học sinh (không quan trọng thứ tự)
+            for (const expectedWord of expectedWords) {
+                const matchIndex = tempTranscriptWords.findIndex(tWord => tWord === expectedWord);
+                
+                if (matchIndex !== -1) {
+                    matchedWords++;
+                    // Loại bỏ từ đã khớp khỏi mảng tạm để tránh đếm trùng
+                    tempTranscriptWords.splice(matchIndex, 1);
+                }
+            }
+
+            // Tính tỷ lệ từ khớp (so với số lượng từ mong muốn)
+            const matchRatio = matchedWords / expectedCount;
+            const MATCH_THRESHOLD = 0.60; // Ngưỡng độ khớp 60%
+
+            console.log("Expected Words:", expectedWords);
+            console.log("Transcript Words (normalized):", transcriptWords);
+            console.log("Matched Words:", matchedWords, "of", expectedCount);
+            console.log("Match Ratio:", matchRatio);
+            
+            if (matchRatio >= MATCH_THRESHOLD) {
+                updateFeedback(`Chính xác! Bạn đã đạt ${Math.round(matchRatio * 100)}% độ khớp. 🎉 Bạn có thể nhấn TIẾP THEO.`, 'success');
+                NEXT_BUTTON.disabled = false;
+            } else {
+                updateFeedback(`Thử lại. Bạn nói: "${transcript}". (Độ khớp: ${Math.round(matchRatio * 100)}%). Câu đúng: "${expectedText}".`, 'error');
+            }
+            READ_BUTTON.disabled = false;
+            REPEAT_BUTTON.disabled = false;
+        }
+
+
+        // --- MAIN LOGIC FUNCTIONS ---
+
+        /**
+         * Cập nhật thẻ hiển thị với dữ liệu câu mới.
+         */
+        function updateCardDisplay(data) {
+            ROLE_DISPLAY.textContent = data.role;
+            EMOJI_DISPLAY.textContent = data.emoji;
+            TEXT_CONTENT.textContent = data.text;
+
+            // Đổi màu nền theo Role
+            CARD.classList.remove('role-A-bg', 'role-B-bg');
+            if (data.voice === 'male') {
+                CARD.classList.add('role-A-bg');
+            } else {
+                CARD.classList.add('role-B-bg');
+            }
+        }
+        
+        /**
+         * Chuyển sang câu tiếp theo và đọc.
+         */
+        function nextSentence() {
+            if (currentLineIndex >= 0 && !NEXT_BUTTON.disabled && NEXT_BUTTON.querySelector('span').textContent.includes('TIẾP THEO')) {
+                 NEXT_BUTTON.disabled = true; 
+            }
+            
+            isStopped = false;
+            STOP_BUTTON.disabled = false;
+            
+            currentLineIndex++;
+            
+            if (currentLineIndex >= scriptData.length) {
+                currentLineIndex = -1; // Reset
+                stopReading(true); 
+                return;
+            }
+
+            const currentItem = scriptData[currentLineIndex];
+            
+            // 1. Cập nhật giao diện
+            updateCardDisplay(currentItem);
+            updateFeedback(''); // Xóa phản hồi cũ
+            
+            // 2. Vô hiệu hóa nút NEXT và bật nút Nghe lại/Đọc
+            NEXT_BUTTON.disabled = true;
+            REPEAT_BUTTON.disabled = false;
+            READ_BUTTON.disabled = false;
+            
+            // 3. Cập nhật nút
+            NEXT_BUTTON.querySelector('span').textContent = 'TIẾP THEO | NEXT';
+
+            // 4. Đọc câu
+            speakText(currentItem.text, currentItem.voice);
+        }
+
+        /**
+         * Lặp lại câu hiện tại (được gọi khi click vào thẻ hoặc nút Nghe Lại).
+         */
+        function repeatCurrentSentence() {
+            if (currentLineIndex >= 0 && currentLineIndex < scriptData.length) {
+                const currentItem = scriptData[currentLineIndex];
+                speakText(currentItem.text, currentItem.voice);
+            }
+        }
+
+        /**
+         * Dừng đọc và reset.
+         * @param {boolean} isFinished - True nếu script đã hoàn thành.
+         */
+        function stopReading(isFinished = false) {
+            isStopped = true;
+            window.speechSynthesis.cancel();
+            if (recognition) recognition.stop(); 
+            
+            NEXT_BUTTON.disabled = false;
+            STOP_BUTTON.disabled = true;
+            REPEAT_BUTTON.disabled = true;
+            READ_BUTTON.disabled = true;
+            CARD.classList.remove('card-playing');
+            isSpeaking = false;
+            updateFeedback('');
+            
+            if (isFinished) {
+                 NEXT_BUTTON.querySelector('span').textContent = 'HOÀN THÀNH | FINISHED';
+                 NEXT_BUTTON.disabled = true;
+                 
+                 // Thiết lập lại thẻ hiển thị sau khi hoàn thành
+                 ROLE_DISPLAY.textContent = 'Đã hoàn thành! | Finished!';
+                 EMOJI_DISPLAY.textContent = '🎉';
+                 TEXT_CONTENT.textContent = 'Nhấn "BẮT ĐẦU LẠI" để ôn tập.';
+
+                 setTimeout(() => {
+                    // Reset giao diện sau 3 giây để người dùng có thể bắt đầu lại
+                    NEXT_BUTTON.querySelector('span').textContent = 'BẮT ĐẦU LẠI | RESTART';
+                    NEXT_BUTTON.disabled = false;
+                    currentLineIndex = -1;
+                    CARD.classList.remove('role-A-bg', 'role-B-bg');
+                    CARD.classList.add('role-A-bg'); 
+                 }, 3000);
+            } else {
+                // Đang dừng giữa chừng
+                NEXT_BUTTON.querySelector('span').textContent = 'TIẾP THEO | NEXT';
+                
+                if (currentLineIndex >= 0) {
+                    REPEAT_BUTTON.disabled = false;
+                    READ_BUTTON.disabled = false;
+                    NEXT_BUTTON.disabled = true; 
+                }
+            }
+        }
+
+
+        // --- KHỞI TẠO ---
+        
+        function initializeApp() {
+            // 0. Hiển thị trạng thái bảo mật (Quan trọng để chẩn đoán)
+            if (window.isSecureContext) {
+                SECURITY_STATUS.textContent = 'Trạng thái bảo mật: ✅ AN TOÀN (Micro có thể hoạt động)';
+                SECURITY_STATUS.classList.add('text-green-600');
+            } else {
+                SECURITY_STATUS.textContent = 'Trạng thái bảo mật: ❌ KHÔNG AN TOÀN (Micro BỊ CHẶN)';
+                SECURITY_STATUS.classList.add('text-red-600');
+                READ_BUTTON.disabled = true;
+            }
+            
+            // 1. Khởi tạo Speech Synthesis (Giọng đọc)
+            if ('speechSynthesis' in window) {
+                NEXT_BUTTON.disabled = true; 
+                STOP_BUTTON.disabled = true;
+                REPEAT_BUTTON.disabled = true;
+                LOADING_INDICATOR.classList.remove('hidden');
+                loadVoices();
+            } else {
+                NEXT_BUTTON.textContent = "Không hỗ trợ TTS | TTS Not Supported";
+                NEXT_BUTTON.disabled = true;
+                LOADING_INDICATOR.classList.add('hidden');
+            }
+            
+            // 2. Khởi tạo Speech Recognition (Kiểm tra giọng nói)
+            initializeRecognition();
+
+            // 3. Thiết lập trạng thái ban đầu cho thẻ
+            currentLineIndex = -1;
+            updateCardDisplay({
+                role: 'Sẵn sàng học | Ready to start', 
+                emoji: '📚', 
+                text: 'Nhấn "BẮT ĐẦU" để bắt đầu!', 
+                voice: 'male'
+            });
+        }
+        
+        window.onload = initializeApp;
+    </script>
+</body>
+</html>
